@@ -33,6 +33,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Demonstrate an example of how to upload files to the server.
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -59,6 +60,16 @@ def upload_file():
             return redirect(url_for('uploaded_file',
                                     filename=filename))
     return render_template('upload.html')
+
+# Render the file back to the user.
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """
+    Render uploaded file as a new webpage
+    """
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
