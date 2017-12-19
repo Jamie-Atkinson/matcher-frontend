@@ -2,10 +2,12 @@
 Simple flask app
 """
 import os
+
 from flask import (Flask, request, redirect, url_for, send_from_directory,
                    flash, render_template)
 import pandas as pd
 from werkzeug.utils import secure_filename
+import requests
 app = Flask(__name__)
 
 # Set the location where uploaded files will be stored (/tmp/ is probably ok)
@@ -19,6 +21,28 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = os.urandom(24)
 
 # Which extensions are allowed to be uploaded?
+
+
+@app.route('/', methods=['GET'])
+def index():
+    """
+    Make an api request
+    """
+
+    url = 'https://registerchecker.cloudapps.digital'
+    payload =  {
+            'strings': 'birming', 
+            'register': 'local-authority-eng', 
+            'field': 'official-name',
+           }
+    headers = {'content-type': 'application/json'}
+    r = requests.post(url, json=payload, headers=headers)
+    print(r)
+    print(r.text)
+    return r.text
+
+
+
 
 ALLOWED_EXTENSIONS = set(['csv'])
 
@@ -35,7 +59,7 @@ def allowed_file(filename):
 
 # Demonstrate an example of how to upload files to the server.
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     """
     Upload a file using a simple form
