@@ -30,19 +30,18 @@ def index():
     Make an api request
     """
 
+def call_register_checker(string_to_match, register, field = 'name'):
     url = 'https://registerchecker.cloudapps.digital'
-    payload =  {
-            'strings': 'hampshi', 
-            'register': 'local-authority-eng', 
-            'field': 'official-name',
-           }
+    payload = {
+            'strings': string_to_match,
+            'register': register, 
+            'field': field,
+        }
     headers = {'content-type': 'application/json'}
     r = requests.post(url, json=payload, headers=headers)
     print(r)
     print(r.text)
     return r.text
-
-
 
 
 ALLOWED_EXTENSIONS = set(['csv'])
@@ -99,9 +98,37 @@ def uploaded_file(filename):
 
 @app.route('/parse/<filename>', methods=['GET', 'POST'])
 def parse_file(filename):
-   
-    data=pd.read_csv('/tmp/testing.csv')
+    filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-1])
+    df = pd.read_csv(filepath)
+    if request.method == 'POST':
+        field = request.form['field']
+        if field not in df.columns: 
+            flash(u'Please select a valid field', 'error')
+            return redirect(request.url)
+        return redirect(url_for('parse_confirm', filename=filename, field=field))
     return render_template('parse.html', filename=filename)
+
+@app.route('/parse_confirm/<filename>/<field>', methods=['GET', 'POST'])
+def parse_confirm(filename, field):
+    filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
+    df = pd.read_csv(filepath)
+    column = df[field].head(20).tolist()
+
+    if request.method == 'POST':
+        if request.form['submit'] == 'Yes':
+            return redirect(url_for('index'))
+        else:
+            return redirect(url_for('parse_file', filename=filename))
+
+    return render_template('parse_confirm.html', filename=filename, field=field, column=column)
+
+    #selected_field = request.args.get('field')
+
+"""
+find somewhere for this thing to go
+for row in df:
+    call_register_checker(row[field])
+"""
 
 
 if __name__ == '__main__':
