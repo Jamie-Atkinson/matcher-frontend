@@ -8,6 +8,7 @@ from flask import (Flask, request, redirect, url_for, send_from_directory,
 import pandas as pd
 from werkzeug.utils import secure_filename
 import requests
+#import tempfile
 app = Flask(__name__)
 
 # Set the location where uploaded files will be stored (/tmp/ is probably ok)
@@ -31,7 +32,7 @@ def index():
 
     url = 'https://registerchecker.cloudapps.digital'
     payload =  {
-            'strings': 'birming', 
+            'strings': 'hampshi', 
             'register': 'local-authority-eng', 
             'field': 'official-name',
            }
@@ -94,6 +95,14 @@ def uploaded_file(filename):
     """
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
+
+
+@app.route('/parse/<filename>', methods=['GET', 'POST'])
+def parse_file(filename):
+   
+    data=pd.read_csv('/tmp/testing.csv')
+    return render_template('parse.html', filename=filename)
+
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
