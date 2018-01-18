@@ -34,14 +34,14 @@ def index():
 def call_register_checker(string_to_match, register, field = 'name'):
     url = 'https://registerchecker.cloudapps.digital'
     payload = {
-            'strings': string_to_match,
-            'register': register, 
-            'field': field,
+        'strings': string_to_match,
+        'register': register,
+        'field': field,
         }
     headers = {'content-type': 'application/json'}
     r = requests.post(url, json=payload, headers=headers)
-    print(r)
-    print(r.text)
+    #print(r)
+    #print(r.text)
     return r.text
 
 
@@ -103,7 +103,7 @@ def parse_file(filename):
     df = pd.read_csv(filepath)
     if request.method == 'POST':
         field = request.form['field']
-        if field not in df.columns: 
+        if field not in df.columns:
             flash(u'Please select a valid field', 'error')
             return redirect(request.url)
         return redirect(url_for('parse_confirm', filename=filename, field=field))
@@ -130,10 +130,14 @@ def parse_confirm(filename, field):
 def parse_confirmed(filename, field):
     filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
     df = pd.read_csv(filepath)
-    
+
+    output = []
+
     if request.method == 'GET':
-       for index, row in df.iterrows():
-            call_register_checker(row[field], 'local-authority-eng', field=field )
+        for index, row in df.iterrows():
+            check = call_register_checker(row[field], 'local-authority-eng', field=field)
+            output.append(check)
+        print(output)
 
     return render_template('parse_confirmed_wip.html')
 
