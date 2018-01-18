@@ -8,6 +8,7 @@ from flask import (Flask, request, redirect, url_for, send_from_directory,
 import pandas as pd
 from werkzeug.utils import secure_filename
 import requests
+import asyncio
 #import tempfile
 app = Flask(__name__)
 
@@ -131,7 +132,7 @@ def parse_confirmed(filename, field):
     df = pd.read_csv(filepath)
     
     if request.method == 'GET':
-        for index, row in df.iterrows():
+       for index, row in df.iterrows():
             call_register_checker(row[field], 'local-authority-eng', field=field )
 
     return render_template('parse_confirmed_wip.html')
