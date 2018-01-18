@@ -9,6 +9,8 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 import requests
 import asyncio
+import json
+
 #import tempfile
 app = Flask(__name__)
 
@@ -40,9 +42,12 @@ def call_register_checker(string_to_match, register, field = 'name'):
         }
     headers = {'content-type': 'application/json'}
     r = requests.post(url, json=payload, headers=headers)
+    rj = json.loads(r.text)
+
+    if rj['register']:
+        return rj
     #print(r)
     #print(r.text)
-    return r.text
 
 
 ALLOWED_EXTENSIONS = set(['csv'])
