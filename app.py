@@ -122,12 +122,11 @@ def parse_confirm(filename, field):
 
     #selected_field = request.args.get('field')
 
-
 @app.route('/parse_confirmed/<filename>/<field>', methods=['GET', 'POST'])
 def parse_confirmed(filename, field):
     filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
     df = pd.read_csv(filepath)
-
+    
     output = []
 
     if request.method == 'GET':
@@ -135,9 +134,16 @@ def parse_confirmed(filename, field):
             check = call_register_checker(row[field], 'local-authority-eng', field=field)
             output.append(check)
         print(output)
-
-    return render_template('parse_confirmed_wip.html')
-
+    
+    foo = []
+    for i, j in enumerate(output):
+        if j is None:
+            foo.append(df[field][i])
+        if j is not None:
+            foo.append(df[field][i])
+    
+    return str(foo)
+    #return render_template('parse_confirmed_wip.html')
 
 
 if __name__ == '__main__':
