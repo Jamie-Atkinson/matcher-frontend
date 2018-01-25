@@ -17,6 +17,7 @@ app = Flask(__name__)
 # Set the location where uploaded files will be stored (/tmp/ is probably ok)
 # Note that at present these will remain on the server until it is rebooted.
 
+ALLOWED_EXTENSIONS = set(['csv'])
 UPLOAD_FOLDER = '/tmp/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -26,12 +27,6 @@ app.secret_key = os.urandom(24)
 
 # Which extensions are allowed to be uploaded?
 
-
-@app.route('/', methods=['GET'])
-def index():
-    """
-    Make an api request
-    """
 
 def call_register_checker(string_to_match, register, field = 'name'):
     url = 'https://registerchecker.cloudapps.digital'
@@ -46,11 +41,7 @@ def call_register_checker(string_to_match, register, field = 'name'):
 
     if rj['register']:
         return rj
-    #print(r)
-    #print(r.text)
 
-
-ALLOWED_EXTENSIONS = set(['csv'])
 
 def allowed_file(filename):
     """
@@ -65,7 +56,8 @@ def allowed_file(filename):
 
 # Demonstrate an example of how to upload files to the server.
 
-@app.route('/upload', methods=['GET', 'POST'])
+
+@app.route('/', methods=['GET', 'POST'])
 def upload_file():
     """
     Upload a file using a simple form
@@ -87,7 +79,7 @@ def upload_file():
         if selected_file and allowed_file(selected_file.filename):
             filename = secure_filename(selected_file.filename)
             selected_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
+            return redirect(url_for('parse_file',
                                     filename=filename))
     return render_template('upload.html')
 
