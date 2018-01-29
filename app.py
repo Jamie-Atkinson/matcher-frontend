@@ -8,11 +8,16 @@ from flask import (Flask, request, redirect, url_for, send_from_directory,
 import pandas as pd
 from werkzeug.utils import secure_filename
 import requests
+import asyncio
+import json
+
+#import tempfile
 app = Flask(__name__)
 
 # Set the location where uploaded files will be stored (/tmp/ is probably ok)
 # Note that at present these will remain on the server until it is rebooted.
 
+ALLOWED_EXTENSIONS = set(['csv'])
 UPLOAD_FOLDER = '/tmp/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -23,28 +28,20 @@ app.secret_key = os.urandom(24)
 # Which extensions are allowed to be uploaded?
 
 
-@app.route('/', methods=['GET'])
-def index():
-    """
-    Make an api request
-    """
-
+def call_register_checker(string_to_match, register, field = 'name'):
     url = 'https://registerchecker.cloudapps.digital'
-    payload =  {
-            'strings': 'birming', 
-            'register': 'local-authority-eng', 
-            'field': 'official-name',
-           }
+    payload = {
+        'strings': string_to_match,
+        'register': register,
+        'field': field,
+        }
     headers = {'content-type': 'application/json'}
     r = requests.post(url, json=payload, headers=headers)
-    print(r)
-    print(r.text)
-    return r.text
+    rj = json.loads(r.text)
 
+    if rj['register']:
+        return rj
 
-
-
-ALLOWED_EXTENSIONS = set(['csv'])
 
 def allowed_file(filename):
     """
@@ -59,7 +56,8 @@ def allowed_file(filename):
 
 # Demonstrate an example of how to upload files to the server.
 
-@app.route('/upload', methods=['GET', 'POST'])
+
+@app.route('/', methods=['GET', 'POST'])
 def upload_file():
     """
     Upload a file using a simple form
@@ -81,7 +79,7 @@ def upload_file():
         if selected_file and allowed_file(selected_file.filename):
             filename = secure_filename(selected_file.filename)
             selected_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
+            return redirect(url_for('parse_file',
                                     filename=filename))
     return render_template('upload.html')
 
@@ -94,6 +92,59 @@ def uploaded_file(filename):
     """
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
+
+
+@app.route('/parse/<filename>', methods=['GET', 'POST'])
+def parse_file(filename):
+    filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-1])
+    df = pd.read_csv(filepath)
+    if request.method == 'POST':
+        field = request.form['field']
+        if field not in df.columns:
+            flash(u'Please select a valid field', 'error')
+            return redirect(request.url)
+        return redirect(url_for('parse_confirm', filename=filename, field=field))
+    return render_template('parse.html', filename=filename)
+
+@app.route('/parse_confirm/<filename>/<field>', methods=['GET', 'POST'])
+def parse_confirm(filename, field):
+    filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
+    df = pd.read_csv(filepath)
+    column = df[field].head(20).tolist()
+
+    if request.method == 'POST':
+        if request.form['submit'] == 'Yes':
+            return redirect(url_for('parse_confirmed', filename=filename, field=field))
+        else:
+            return redirect(url_for('parse_file', filename=filename))
+
+    return render_template('parse_confirm.html', filename=filename, field=field, column=column)
+
+    #selected_field = request.args.get('field')
+
+@app.route('/parse_confirmed/<filename>/<field>', methods=['GET', 'POST'])
+def parse_confirmed(filename, field):
+    filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
+    df = pd.read_csv(filepath)
+    
+    output = []
+
+    if request.method == 'GET':
+        for index, row in df.iterrows():
+            check = call_register_checker(row[field], 'local-authority-eng', field=field)
+            output.append(check)
+        print(output)
+    
+    foo = []
+    for i, j in enumerate(output):
+        if j is None:
+            foo.append(df[field][i])
+        if j is not None:
+            foo.append(df[field][i])
+    
+    return str(foo)
+    #return render_template('parse_confirmed_wip.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)

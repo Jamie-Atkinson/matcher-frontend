@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+    {% block body %}
+    <h2>Please confirm you wish to parse <u>{{field}}</u> from <u>{{filename}}</u>:</h2>
+    <form method=post enctype=multipart/form-data>
+      <p><input type=submit name="submit" value = "Yes">
+      <input type="submit" name="submit" value="No">
+    </form>
+    <h2> Below are the first 20 entries from this field:</h2>
+    <b>{{column}}<p><i>Please note it can take some time to process the file after selecting yes. Please be patient while our highly trained team of hampsters work on the problem.</i><p> Please dont refresh the page.</b>
+
+
+{% endblock %}
