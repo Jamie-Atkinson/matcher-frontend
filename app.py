@@ -7,6 +7,7 @@ from flask import (Flask, request, redirect, url_for, send_from_directory,
                    flash, render_template)
 import pandas as pd
 from werkzeug.utils import secure_filename
+from output_keys import output_keys
 import requests
 import asyncio
 import json
@@ -135,14 +136,18 @@ def parse_confirmed(filename, field):
             output.append(check)
         print(output)
     
+    
+    unwanted = ['row.names','phase','index-entry-number','entry-number','entry-timestamp','key']
+
     foo = []
     for i, j in enumerate(output):
         if j is None:
-            foo.append(df[field][i])
+            foo.append((df[field][i], None))
         if j is not None:
-            foo.append(df[field][i])
-    
-    return str(foo)
+            foo.append((df[field][i], output_keys(j, unwanted)))
+
+    return(str(foo))
+
     #return render_template('parse_confirmed_wip.html')
 
 
