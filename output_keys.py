@@ -1,8 +1,11 @@
 # coding: utf-8
 def output_keys(json, unwanted):
     """
-    Extract only the values from the keys in the json that we are interested in 
+    Extract values from the json that we are interested in 
+
+    :param json: <dict>
+    :param unwanted: <list>
     """
-    values = json.values()
-    keys = json.keys()
-    return values, keys
+    wanted = [i for i in json.keys() if i not in unwanted] 
+    out = dict((k, json[k]) for k in wanted if k in json)
+    return out
