@@ -146,10 +146,11 @@ def parse_confirmed(filename, field):
         if j is not None:
             foo.append((df[field][i], output_keys(j, unwanted)))
 
-    return(str(foo))
+    bar = pd.DataFrame.from_records(foo)
+
+    return(str(bar))
 
     #return render_template('parse_confirmed_wip.html')
-
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
