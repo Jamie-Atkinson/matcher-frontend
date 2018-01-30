@@ -2,7 +2,6 @@
 Simple flask app
 """
 import os
-
 from flask import (Flask, request, redirect, url_for, send_from_directory,
                    flash, render_template)
 import pandas as pd
@@ -30,6 +29,12 @@ app.secret_key = os.urandom(24)
 
 
 def call_register_checker(string_to_match, register, field = 'name'):
+    """
+    What do I do?
+
+    :param string_to_match: <str> This is what is expected....
+
+    """
     url = 'https://registerchecker.cloudapps.digital'
     payload = {
         'strings': string_to_match,
@@ -97,6 +102,9 @@ def uploaded_file(filename):
 
 @app.route('/parse/<filename>', methods=['GET', 'POST'])
 def parse_file(filename):
+    """
+
+    """
     filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-1])
     df = pd.read_csv(filepath)
     if request.method == 'POST':
@@ -109,6 +117,9 @@ def parse_file(filename):
 
 @app.route('/parse_confirm/<filename>/<field>', methods=['GET', 'POST'])
 def parse_confirm(filename, field):
+    """
+
+    """
     filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
     df = pd.read_csv(filepath)
     column = df[field].head(20).tolist()
@@ -125,9 +136,12 @@ def parse_confirm(filename, field):
 
 @app.route('/parse_confirmed/<filename>/<field>', methods=['GET', 'POST'])
 def parse_confirmed(filename, field):
+    """
+
+    """
     filepath = UPLOAD_FOLDER + secure_filename(request.path.split('/')[-2])
     df = pd.read_csv(filepath)
-    
+
     output = []
 
     if request.method == 'GET':
@@ -145,24 +159,21 @@ def parse_confirmed(filename, field):
             j = output_keys(j, unwanted)
             j = pd.DataFrame.from_dict(j)
             j['origin'] = df['name'][i]
-            foo = j.copy()
+            result_table = j.copy()
         if i > 0:
             j = output_keys(j, unwanted)
             j = pd.DataFrame.from_dict(j)
             j['origin'] = df['name'][i]
-            foo = pd.concat([foo, j])
+            result_table = pd.concat([result_table, j])
 
     # Convert start date to UTC date
     
-    foo['start-date'] = pd.to_datetime(foo['start-date'])
+    result_table['start-date'] = pd.to_datetime(result_table['start-date'])
     # Order columns more senibly
     
-    #foo = foo[[<list of column names here>]]
+    #result_table = result_table[[<list of column names here>]]
     
-    return render_template('table.html',table=[foo.to_html(classes='name')])
-    #return(str(foo))
-
-    #return render_template('parse_confirmed_wip.html')
+    return render_template('table.html',table=[result_table.to_html(classes='name')])
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
