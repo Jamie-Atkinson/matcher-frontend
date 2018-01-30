@@ -1,8 +1,9 @@
 <!doctype html>
 <title>FlaskyMCFlaskFace</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <ul style="float: right; width: 50%">
+    <ul>
     {% for category, message in messages %}
       {% if message is iterable and message is not string %}
         {% for line in message %}
@@ -15,6 +16,6 @@
     </ul>
   {% endif %}
 {% endwith %}
-<div style="width: 50%">
+<div>
   {% block body %}{% endblock %}
 </div>

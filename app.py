@@ -134,24 +134,33 @@ def parse_confirmed(filename, field):
         for index, row in df.iterrows():
             check = call_register_checker(row[field], 'local-authority-eng', field=field)
             output.append(check)
-        print(output)
-    
     
     unwanted = ['row.names','phase','index-entry-number','entry-number','entry-timestamp','key']
 
-    foo = []
+
+    output = [i for i in output if i]
     for i, j in enumerate(output):
-        #if j is None:
-        #    foo.append((df[field][i], None))
-        if j is not None:
-            return j
-            #return pd.DataFrame.from_dict(j)
-            foo.append((df[field][i], output_keys(j, unwanted)))
 
-    bar = pd.DataFrame.from_records(foo)
-    #foobar = pd.read_json(foo)
+        if i == 0:
+            j = output_keys(j, unwanted)
+            j = pd.DataFrame.from_dict(j)
+            j['origin'] = df['name'][i]
+            foo = j.copy()
+        if i > 0:
+            j = output_keys(j, unwanted)
+            j = pd.DataFrame.from_dict(j)
+            j['origin'] = df['name'][i]
+            foo = pd.concat([foo, j])
 
-    return(str(bar))
+    # Convert start date to UTC date
+    
+    foo['start-date'] = pd.to_datetime(foo['start-date'])
+    # Order columns more senibly
+    
+    #foo = foo[[<list of column names here>]]
+    
+    return render_template('table.html',table=[foo.to_html(classes='name')])
+    #return(str(foo))
 
     #return render_template('parse_confirmed_wip.html')
 
