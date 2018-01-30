@@ -141,12 +141,15 @@ def parse_confirmed(filename, field):
 
     foo = []
     for i, j in enumerate(output):
-        if j is None:
-            foo.append((df[field][i], None))
+        #if j is None:
+        #    foo.append((df[field][i], None))
         if j is not None:
+            return j
+            #return pd.DataFrame.from_dict(j)
             foo.append((df[field][i], output_keys(j, unwanted)))
 
     bar = pd.DataFrame.from_records(foo)
+    #foobar = pd.read_json(foo)
 
     return(str(bar))
 
